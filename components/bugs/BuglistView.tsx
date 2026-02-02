@@ -1,13 +1,7 @@
 import React from "react";
 import { Calendar, MoreVertical, User } from "lucide-react";
 
-interface Bug {
-  id: number;
-  title: string;
-  status: string;
-  assignees: { name: string }[];
-  deadline?: string;
-}
+import { Bug } from "@/types/bugs";
 
 interface BugListViewProps {
   bugs: Bug[];

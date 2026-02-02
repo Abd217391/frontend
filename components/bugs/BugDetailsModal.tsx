@@ -12,17 +12,7 @@ import {
   Users,
 } from "lucide-react";
 
-interface Bug {
-  id: number;
-  title: string;
-  description: string;
-  status: string;
-  type: string;
-  created_by: number;
-  deadline?: string;
-  screenshot_url?: string;
-  created_at: string;
-}
+import { Bug } from "@/types/bugs";
 
 interface Assignee {
   id: number;
