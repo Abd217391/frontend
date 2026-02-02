@@ -1,7 +1,0 @@
-{
-  "/(root)/join-us/page": "app/(root)/join-us/page.js",
-  "/(root)/login/page": "app/(root)/login/page.js",
-  "/(root)/page": "app/(root)/page.js",
-  "/dashboard/bugs/page": "app/dashboard/bugs/page.js",
-  "/dashboard/project/page": "app/dashboard/project/page.js"
-}

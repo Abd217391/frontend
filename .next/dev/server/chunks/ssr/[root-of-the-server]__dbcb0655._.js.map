@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 22, "column": 0}, "map": {"version":3,"sources":["file:///Users/ahmadabdullah/bug_tracking_system/app/%28root%29/page.tsx"],"sourcesContent":["// app/page.tsx\nimport { redirect } from \"next/navigation\";\n\nexport default function Home() {\n  // Root automatically sends user to Join Us page\n  redirect(\"/join-us\");\n}\n"],"names":[],"mappings":";;;;AAAA,eAAe;AACf;AAAA;;AAEe,SAAS;IACtB,gDAAgD;IAChD,IAAA,iMAAQ,EAAC;AACX"}}]
-}
