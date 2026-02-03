@@ -1,5 +1,6 @@
 "use client";
 
+import { API_BASE_URL } from "@/utils/constants";
 import React, { useEffect, useState, Suspense } from "react";
 import {
   Plus,
@@ -21,12 +22,12 @@ import BugListView from "@/components/bugs/BuglistView";
 import BugGridView from "@/components/bugs/BugGridView";
 import { Bug } from "@/types/bugs";
 
+
 interface Project {
   id: number;
   title: string;
 }
 
-// Separate the content into its own component
 function BugDashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -46,19 +47,17 @@ function BugDashboardContent() {
   const [currentPage, setCurrentPage] = useState(1);
   const [mounted, setMounted] = useState(false);
 
-  // Auth states
   const [token, setToken] = useState<string | null>(null);
   const [role, setRole] = useState<string | null>(null);
-
-  // Pagination Config
   const [rowsPerPage, setRowsPerPage] = useState(6);
   const containerClass = "max-w-[1000px] mx-auto px-6";
 
   const fetchProjects = async (authToken: string, userRole: string) => {
     try {
+      // --- UPDATED URL ---
       const url = userRole === "manager" || userRole === "qa"
-          ? `http://localhost:8000/${userRole}/projectstodisplaythehisownprojects`
-          : `http://localhost:8000/developer/projects`;
+          ? `${API_BASE_URL}/${userRole}/projectstodisplaythehisownprojects`
+          : `${API_BASE_URL}/developer/projects`;
       const res = await fetch(url, { headers: { Authorization: `Bearer ${authToken}` } });
       const data = await res.json();
       const mapped = Array.isArray(data) ? data.map((p: any) => ({ id: p.id, title: p.title || "Untitled Project" })) : [];
@@ -73,11 +72,12 @@ function BugDashboardContent() {
     setLoading(true);
     setError(false);
     try {
+      // --- UPDATED URL LOGIC ---
       let url = "";
       if (userRole === "manager" || userRole === "qa") {
-        url = projId ? `http://localhost:8000/${userRole}/projects/${projId}/bugs` : `http://localhost:8000/bugs`;
+        url = projId ? `${API_BASE_URL}/${userRole}/projects/${projId}/bugs` : `${API_BASE_URL}/bugs`;
       } else if (userRole === "developer") {
-        url = projId ? `http://localhost:8000/developer/projects/${projId}/bugs` : `http://localhost:8000/bugs`;
+        url = projId ? `${API_BASE_URL}/developer/projects/${projId}/bugs` : `${API_BASE_URL}/bugs`;
       }
       const res = await fetch(url, { headers: { Authorization: `Bearer ${authToken}`, accept: "application/json" } });
       if (!res.ok) { setBugs([]); setLoading(false); return; }
@@ -111,6 +111,8 @@ function BugDashboardContent() {
     setCurrentPage(1);
   }, [search]);
 
+  // ... (Keep the rest of your filtering and UI logic exactly the same) ...
+
   const filteredBugs = bugs.filter((b) => b.title.toLowerCase().includes(search.toLowerCase()));
   const totalPages = Math.ceil(filteredBugs.length / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;
@@ -136,6 +138,7 @@ function BugDashboardContent() {
 
   return (
     <div className="min-h-screen bg-white text-[#475569] font-sans">
+      {/* ... (Your existing JSX code) ... */}
       <nav className="bg-white border-b border-gray-100 sticky top-0 z-40">
         <div className={`${containerClass} flex items-center justify-between py-2`}>
           <div className="flex items-center gap-10">
@@ -256,7 +259,6 @@ function BugDashboardContent() {
   );
 }
 
-// THE WRAPPER THAT FIXES VERCEL DEPLOYMENT
 export default function BugDashboard() {
   return (
     <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-xs text-gray-400">Loading components...</div>}>

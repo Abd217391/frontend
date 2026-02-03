@@ -1,6 +1,6 @@
 "use client";
 
-
+import { API_BASE_URL } from "@/utils/constants";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -12,15 +12,15 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-//Login handler page
+
   async function handleLogin() {
     setLoading(true);
 
     try {
       const formData = new URLSearchParams({ username: email, password });
 
-      // Login request
-      const res = await fetch("http://localhost:8000/auth/login", {
+      // Updated URL to use API_BASE_URL
+      const res = await fetch(`${API_BASE_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: formData.toString(),
@@ -31,15 +31,14 @@ export default function LoginPage() {
       const data = await res.json();
       localStorage.setItem("token", data.access_token);
 
-      // Fetch user role after login
-      const userRes = await fetch("http://localhost:8000/auth/me", {
+      // Updated URL to use API_BASE_URL
+      const userRes = await fetch(`${API_BASE_URL}/auth/me`, {
         headers: { Authorization: `Bearer ${data.access_token}` },
       });
 
       const userData = await userRes.json();
       localStorage.setItem("role", userData.role);
 
-      // Redirect after successful login
       router.replace("/dashboard/project");
     } catch {
       alert("Login failed");
@@ -48,7 +47,6 @@ export default function LoginPage() {
     }
   }
 
-  // Shared input styling
   const inputStyle =
     "w-full h-14 pl-12 rounded-lg bg-[#F5F7FA] border border-transparent focus:bg-white focus:border-blue-600 outline-none transition-all placeholder-gray-400 text-gray-900";
 
@@ -58,7 +56,6 @@ export default function LoginPage() {
       <p className="text-gray-500 mt-2 mb-8">Please enter your login details</p>
 
       <div className="space-y-4">
-        {/* Email input */}
         <div className="relative">
           <Mail className="absolute left-4 top-4 text-gray-400" size={20} />
           <input
@@ -69,7 +66,6 @@ export default function LoginPage() {
           />
         </div>
 
-        {/* Password input */}
         <div className="relative">
           <Lock className="absolute left-4 top-4 text-gray-400" size={20} />
           <input
@@ -85,7 +81,6 @@ export default function LoginPage() {
           />
         </div>
 
-        {/* Login button */}
         <button
           onClick={handleLogin}
           disabled={loading}

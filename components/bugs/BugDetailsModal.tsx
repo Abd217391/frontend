@@ -1,5 +1,6 @@
 "use client";
 
+import { API_BASE_URL } from "@/utils/constants";
 import React, { useState, useEffect } from "react";
 import {
   X,
@@ -13,6 +14,7 @@ import {
 } from "lucide-react";
 
 import { Bug } from "@/types/bugs";
+
 
 interface Assignee {
   id: number;
@@ -30,26 +32,26 @@ export default function BugDetailsModal({ bug, isOpen, onClose }: Props) {
   const [status, setStatus] = useState(bug.status);
   const [loading, setLoading] = useState(false);
   const [assignees, setAssignees] = useState<Assignee[]>([]);
-  const [mounted, setMounted] = useState(false); // Fixes Hydration error
+  const [mounted, setMounted] = useState(false); 
 
   const role =
     typeof window !== "undefined" ? localStorage.getItem("role") : null;
   const token =
     typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
-  // Sync internal status state if the bug prop changes
   useEffect(() => {
     setStatus(bug.status);
   }, [bug.status]);
 
   useEffect(() => {
-    setMounted(true); // Component is now on the client
+    setMounted(true);
 
     const fetchAssignees = async () => {
       if (!bug.id || !token || !isOpen) return;
       try {
+        // --- UPDATED URL ---
         const res = await fetch(
-          `http://localhost:8000/bugs/${bug.id}/assignees`,
+          `${API_BASE_URL}/bugs/${bug.id}/assignees`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -69,14 +71,15 @@ export default function BugDetailsModal({ bug, isOpen, onClose }: Props) {
     fetchAssignees();
   }, [bug.id, isOpen, token]);
 
-  if (!isOpen || !mounted) return null; //  Don't render until mounted to avoid hydration error
+  if (!isOpen || !mounted) return null;
 
   const handleUpdateStatus = async () => {
     if (!token) return;
     setLoading(true);
     try {
+      // --- UPDATED URL ---
       const res = await fetch(
-        `http://localhost:8000/developer/bugs/${bug.id}/status?status_update=${encodeURIComponent(status)}`,
+        `${API_BASE_URL}/developer/bugs/${bug.id}/status?status_update=${encodeURIComponent(status)}`,
         {
           method: "PATCH",
           headers: {

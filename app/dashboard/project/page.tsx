@@ -1,17 +1,20 @@
 "use client";
 
+import { API_BASE_URL } from "@/utils/constants";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import AddProjectModal from "@/components/manager/AddProjectModal";
 import { Search, Plus, Bell, ChevronDown, LogOut, User, ChevronLeft, ChevronRight } from "lucide-react";
 
+// --- URL LOGIC ADDED HERE ---
 
-//images for projects card
+
+// images for projects card
 const PROJECT_IMAGES = [
   "/image1.png", "/image2.png", "/image3.png",
   "/image4.png", "/image5.png", "/image6.png",
 ];
-//This is how our project is going to look like
+
 interface Project {
   id: number;
   title: string;
@@ -32,9 +35,8 @@ export default function ManagerDashboard() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // --- NEW: Pagination State ---
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6; // Set to 6 to fit your 3-column grid perfectly
+  const itemsPerPage = 6; 
 
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : "";
 
@@ -46,7 +48,8 @@ export default function ManagerDashboard() {
 
     async function fetchRole() {
       try {
-        const res = await fetch("http://localhost:8000/auth/me", {
+        // --- UPDATED URL ---
+        const res = await fetch(`${API_BASE_URL}/auth/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -61,9 +64,10 @@ export default function ManagerDashboard() {
   async function fetchProjects() {
     if (!token || !role) return;
     try {
+      // --- UPDATED URL LOGIC ---
       const url = role === "manager" || role === "qa"
-          ? `http://localhost:8000/${role}/projectstodisplaythehisownprojects`
-          : `http://localhost:8000/developer/projects`;
+          ? `${API_BASE_URL}/${role}/projectstodisplaythehisownprojects`
+          : `${API_BASE_URL}/developer/projects`;
 
       const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json();
@@ -100,7 +104,6 @@ export default function ManagerDashboard() {
       p.description.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  // --- NEW: Pagination Logic ---
   const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentProjects = filteredProjects.slice(startIndex, startIndex + itemsPerPage);
@@ -109,8 +112,8 @@ export default function ManagerDashboard() {
 
   return (
     <div className="min-h-screen bg-white text-[#475569]">
-      {/* Top Navigation */}
-      <nav className="bg-white border-b border-gray-100  top-0 z-40">
+      {/* ... Navigation remains the same ... */}
+      <nav className="bg-white border-b border-gray-100 top-0 z-40">
         <div className={`${containerClass} flex items-center justify-between py-2`}>
           <div className="flex items-center gap-10">
             <div className="cursor-pointer" onClick={() => router.push("/dashboard/project")}>
@@ -152,7 +155,6 @@ export default function ManagerDashboard() {
         </div>
       </nav>
 
-      {/* Main Content */}
       <main className={`${containerClass} py-8`}>
         <div className="flex justify-between items-center mb-5">
           <div className="border-l-[3px] border-[#22C55E] pl-3">
@@ -180,7 +182,6 @@ export default function ManagerDashboard() {
 
         <hr className="opacity-5 mb-6" />
 
-        {/* Project Grid - Updated to use currentProjects */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 min-h-[400px]">
           {currentProjects.length ? (
             currentProjects.map((p) => (
@@ -204,7 +205,6 @@ export default function ManagerDashboard() {
           )}
         </div>
 
-        {/* --- NEW: Pagination Controls --- */}
         {filteredProjects.length > 0 && (
           <div className="mt-10 flex justify-between items-center border-t border-gray-50 pt-6">
             <p className="text-[11px] text-[#94A3B8] font-medium">
@@ -255,7 +255,6 @@ export default function ManagerDashboard() {
         )}
       </main>
 
-      {/* Modal */}
       {isProjectModalOpen && role === "manager" && (
         <AddProjectModal
           setIsProjectModalOpen={setIsProjectModalOpen}

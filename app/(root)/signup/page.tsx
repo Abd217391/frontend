@@ -1,9 +1,11 @@
 "use client";
 
+import { API_BASE_URL } from "@/utils/constants";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { User, Phone, Mail, Lock, ArrowRight, Eye, EyeOff } from "lucide-react";
+
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -18,19 +20,18 @@ export default function SignUpPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Role state (from query params)
+  // Role state
   const [role, setRole] = useState<string | null>(null);
-  const [mounted, setMounted] = useState(false); // ensure code runs only on client
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // This code only runs on the client
     setMounted(true);
     const params = new URLSearchParams(window.location.search);
     const roleParam = params.get("role");
     setRole(roleParam);
   }, []);
 
-  if (!mounted) return null; // avoid server-side rendering issues
+  if (!mounted) return null;
 
   const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -49,20 +50,20 @@ export default function SignUpPage() {
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:8000/auth/signup", {
+      // --- FETCH UPDATED WITH CORRECT URL AND HEADERS ---
+      const res = await fetch(`${API_BASE_URL}/auth/signup`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" }, // CORRECTED THIS LINE
         body: JSON.stringify({ name, phone, email, password, role }),
       });
 
       const contentType = res.headers.get("content-type");
       let data: any = {};
 
-      // Check if the response is JSON
       if (contentType && contentType.includes("application/json")) {
         data = await res.json();
       } else {
-        data = { detail: await res.text() }; // fallback
+        data = { detail: await res.text() };
       }
 
       if (!res.ok) {
@@ -82,13 +83,13 @@ export default function SignUpPage() {
 
   return (
     <div className="w-full max-w-[440px] px-6 py-10 mx-auto">
+      {/* ... (Rest of your UI is exactly the same) ... */}
       <form className="space-y-6" onSubmit={handleSignup}>
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-[#1e1b4b]">Sign Up</h1>
           <p className="text-gray-500 mt-2">Please fill your information below</p>
         </div>
 
-        {/* Name */}
         <div className="relative group">
           <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#0066FF] transition-colors">
             <User size={20} />
@@ -102,7 +103,6 @@ export default function SignUpPage() {
           />
         </div>
 
-        {/* Phone */}
         <div className="relative group">
           <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#0066FF]">
             <Phone size={20} />
@@ -116,7 +116,6 @@ export default function SignUpPage() {
           />
         </div>
 
-        {/* Email */}
         <div className="relative group">
           <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#0066FF] transition-colors">
             <Mail size={20} />
@@ -130,7 +129,6 @@ export default function SignUpPage() {
           />
         </div>
 
-        {/* Password */}
         <div className="relative group">
           <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#0066FF] transition-colors">
             <Lock size={20} />
@@ -150,7 +148,6 @@ export default function SignUpPage() {
           </span>
         </div>
 
-        {/* Confirm Password */}
         <div className="relative group">
           <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#0066FF] transition-colors">
             <Lock size={20} />
@@ -170,7 +167,6 @@ export default function SignUpPage() {
           </span>
         </div>
 
-        {/* Submit Button */}
         <button
           type="submit"
           disabled={loading}

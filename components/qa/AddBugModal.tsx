@@ -1,7 +1,10 @@
 "use client";
 
+import { API_BASE_URL } from "@/utils/constants";
 import React, { useState, useEffect, useRef } from "react";
 import { X, Plus, Calendar, CloudUpload, Check, User } from "lucide-react";
+
+
 
 interface Developer {
   id: number;
@@ -63,7 +66,8 @@ export default function AddBugModal({
   useEffect(() => {
     if (!isOpen || !token) return;
 
-    fetch("http://localhost:8000/qa/developers", {
+    // --- UPDATED URL ---
+    fetch(`${API_BASE_URL}/qa/developers`, {
       headers: {
         Authorization: `Bearer ${token}`,
         Accept: "application/json",
@@ -74,8 +78,6 @@ export default function AddBugModal({
         return res.json();
       })
       .then((data) => {
-        console.log("Developers received:", data);
-        // Handles cases where data might be nested or direct array
         const devs = Array.isArray(data)
           ? data
           : data.developers || data.data || [];
@@ -112,8 +114,9 @@ export default function AddBugModal({
         screenshot_url: screenshotUrl || "",
       };
 
+      // --- UPDATED URL ---
       const res = await fetch(
-        `http://localhost:8000/qa/projects/${projectId}/bugs`,
+        `${API_BASE_URL}/qa/projects/${projectId}/bugs`,
         {
           method: "POST",
           headers: {
@@ -133,8 +136,9 @@ export default function AddBugModal({
       const newBugId = createdBug.id;
 
       if (assignedDevelopers.length > 0 && newBugId) {
+        // --- UPDATED URL ---
         const assignRes = await fetch(
-          `http://localhost:8000/qa/bugs/${newBugId}/assign-developers`,
+          `${API_BASE_URL}/qa/bugs/${newBugId}/assign-developers`,
           {
             method: "POST",
             headers: {
@@ -146,9 +150,7 @@ export default function AddBugModal({
         );
 
         if (!assignRes.ok) {
-          console.warn(
-            "Bug created, but assignments to junction table failed.",
-          );
+          console.warn("Bug created, but assignments failed.");
         }
       }
 
@@ -175,6 +177,7 @@ export default function AddBugModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+      {/* ... UI code remains exactly the same ... */}
       <div className="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl p-8 animate-in fade-in zoom-in-95 duration-200">
         <button
           onClick={onClose}

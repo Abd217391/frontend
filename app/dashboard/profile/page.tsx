@@ -1,5 +1,6 @@
 "use client";
 
+import { API_BASE_URL } from "@/utils/constants";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -13,6 +14,9 @@ import {
   Edit2,
   Eye,
 } from "lucide-react";
+
+// --- URL LOGIC ADDED HERE ---
+
 
 interface UserProfile {
   id: number;
@@ -47,7 +51,8 @@ export default function ProfileSettings() {
     const fetchProfile = async () => {
       if (!token) return;
       try {
-        const res = await fetch("http://127.0.0.1:8000/auth/me", {
+        // --- UPDATED URL ---
+        const res = await fetch(`${API_BASE_URL}/auth/me`, {
           headers: {
             Authorization: `Bearer ${token}`,
             accept: "application/json",
@@ -100,7 +105,8 @@ export default function ProfileSettings() {
         payload[field] = formData[field as keyof typeof formData];
       }
 
-      const res = await fetch("http://127.0.0.1:8000/auth/", {
+      // --- UPDATED URL ---
+      const res = await fetch(`${API_BASE_URL}/auth/`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -172,10 +178,8 @@ export default function ProfileSettings() {
         </div>
       </nav>
 
-      {/* --- Main --- */}
       <main className="max-w-[1000px] mx-auto pt-16 flex flex-col items-center px-6">
         <div className="w-full max-w-2xl flex flex-col items-center">
-          {/* Header */}
           <div className="flex items-center gap-6 mb-10">
             <div className="w-28 h-28 rounded-full flex items-center justify-center border-4 border-white shadow-sm relative left-19">
               <img
@@ -187,7 +191,6 @@ export default function ProfileSettings() {
             <h2 className="text-2xl font-bold text-[#1E293B] relative right-110">Profile Settings</h2>
           </div>
 
-          {/* Fields */}
           <div className="space-y-6 w-full max-w-md">
             {/* Name */}
             <div className="flex items-center gap-2 relative">
@@ -199,28 +202,13 @@ export default function ProfileSettings() {
                     onChange={(e) => handleChange("name", e.target.value)}
                     className="w-full border border-gray-300 rounded-lg py-2 px-3"
                   />
-                  <button
-                    onClick={() => handleSave("name")}
-                    disabled={isSubmitting}
-                    className="ml-2 px-3 py-1 bg-blue-600 text-white rounded-lg"
-                  >
-                    Save
-                  </button>
-                  <button
-                    onClick={() => setEditingField(null)}
-                    className="ml-2 px-2 py-1 bg-gray-200 rounded-lg"
-                  >
-                    Cancel
-                  </button>
+                  <button onClick={() => handleSave("name")} className="ml-2 px-3 py-1 bg-blue-600 text-white rounded-lg">Save</button>
+                  <button onClick={() => setEditingField(null)} className="ml-2 px-2 py-1 bg-gray-200 rounded-lg">Cancel</button>
                 </>
               ) : (
                 <>
                   <div className="flex-1 py-2 px-3 bg-gray-100 rounded-lg">{profile?.name}</div>
-                  <Edit2
-                    className="cursor-pointer text-gray-500"
-                    size={16}
-                    onClick={() => setEditingField("name")}
-                  />
+                  <Edit2 className="cursor-pointer text-gray-500" size={16} onClick={() => setEditingField("name")} />
                 </>
               )}
             </div>
@@ -235,28 +223,13 @@ export default function ProfileSettings() {
                     onChange={(e) => handleChange("email", e.target.value)}
                     className="w-full border border-gray-300 rounded-lg py-2 px-3"
                   />
-                  <button
-                    onClick={() => handleSave("email")}
-                    disabled={isSubmitting}
-                    className="ml-2 px-3 py-1 bg-blue-600 text-white rounded-lg"
-                  >
-                    Save
-                  </button>
-                  <button
-                    onClick={() => setEditingField(null)}
-                    className="ml-2 px-2 py-1 bg-gray-200 rounded-lg"
-                  >
-                    Cancel
-                  </button>
+                  <button onClick={() => handleSave("email")} className="ml-2 px-3 py-1 bg-blue-600 text-white rounded-lg">Save</button>
+                  <button onClick={() => setEditingField(null)} className="ml-2 px-2 py-1 bg-gray-200 rounded-lg">Cancel</button>
                 </>
               ) : (
                 <>
                   <div className="flex-1 py-2 px-3 bg-gray-100 rounded-lg">{profile?.email}</div>
-                  <Edit2
-                    className="cursor-pointer text-gray-500"
-                    size={16}
-                    onClick={() => setEditingField("email")}
-                  />
+                  <Edit2 className="cursor-pointer text-gray-500" size={16} onClick={() => setEditingField("email")} />
                 </>
               )}
             </div>
@@ -271,28 +244,13 @@ export default function ProfileSettings() {
                     onChange={(e) => handleChange("phone", e.target.value)}
                     className="w-full border border-gray-300 rounded-lg py-2 px-3"
                   />
-                  <button
-                    onClick={() => handleSave("phone")}
-                    disabled={isSubmitting}
-                    className="ml-2 px-3 py-1 bg-blue-600 text-white rounded-lg"
-                  >
-                    Save
-                  </button>
-                  <button
-                    onClick={() => setEditingField(null)}
-                    className="ml-2 px-2 py-1 bg-gray-200 rounded-lg"
-                  >
-                    Cancel
-                  </button>
+                  <button onClick={() => handleSave("phone")} className="ml-2 px-3 py-1 bg-blue-600 text-white rounded-lg">Save</button>
+                  <button onClick={() => setEditingField(null)} className="ml-2 px-2 py-1 bg-gray-200 rounded-lg">Cancel</button>
                 </>
               ) : (
                 <>
                   <div className="flex-1 py-2 px-3 bg-gray-100 rounded-lg">{profile?.phone}</div>
-                  <Edit2
-                    className="cursor-pointer text-gray-500"
-                    size={16}
-                    onClick={() => setEditingField("phone")}
-                  />
+                  <Edit2 className="cursor-pointer text-gray-500" size={16} onClick={() => setEditingField("phone")} />
                 </>
               )}
             </div>
@@ -309,34 +267,16 @@ export default function ProfileSettings() {
                     className="w-full border border-gray-300 rounded-lg py-2 px-3"
                     placeholder="New password"
                   />
-                  <button
-                    onClick={() => handleSave("password")}
-                    disabled={isSubmitting}
-                    className="ml-2 px-3 py-1 bg-blue-600 text-white rounded-lg"
-                  >
-                    Save
-                  </button>
-                  <button
-                    onClick={() => setEditingField(null)}
-                    className="ml-2 px-2 py-1 bg-gray-200 rounded-lg"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={() => setShowPassword((prev) => !prev)}
-                    className="ml-2 px-2 py-1 bg-gray-100 rounded-lg"
-                  >
+                  <button onClick={() => handleSave("password")} className="ml-2 px-3 py-1 bg-blue-600 text-white rounded-lg">Save</button>
+                  <button onClick={() => setEditingField(null)} className="ml-2 px-2 py-1 bg-gray-200 rounded-lg">Cancel</button>
+                  <button onClick={() => setShowPassword((prev) => !prev)} className="ml-2 px-2 py-1 bg-gray-100 rounded-lg">
                     {showPassword ? "Hide" : "Show"}
                   </button>
                 </>
               ) : (
                 <>
                   <div className="flex-1 py-2 px-3 bg-gray-100 rounded-lg">********</div>
-                  <Edit2
-                    className="cursor-pointer text-gray-500"
-                    size={16}
-                    onClick={() => setEditingField("password")}
-                  />
+                  <Edit2 className="cursor-pointer text-gray-500" size={16} onClick={() => setEditingField("password")} />
                 </>
               )}
             </div>
