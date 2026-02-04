@@ -13,7 +13,7 @@ import {
   Smile,
 } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
-import Navbar from "@/components/dashboard/Navbar"; // 1. IMPORT SHARED NAVBAR
+import Navbar from "@/components/dashboard/Navbar"; 
 import AddBugModal from "@/components/qa/AddBugModal";
 import BugDetailsModal from "@/components/bugs/BugDetailsModal";
 import BugListView from "@/components/bugs/BuglistView";
@@ -76,13 +76,17 @@ function BugDashboardContent() {
       const res = await fetch(url, { headers: { Authorization: `Bearer ${authToken}`, accept: "application/json" } });
       if (!res.ok) { setBugs([]); setLoading(false); return; }
       const data = await res.json();
+      
+      // --- FIXED MAPPING LOGIC ---
       setBugs(data.map((b: any) => ({
           id: b.id,
           title: b.title,
           status: b.status || "new",
+          type: b.type || "bug", // Added to ensure badges work
           assignees: b.assignments?.map((a: any) => ({ name: a.user?.name || "Unknown" })) || [],
           deadline: b.deadline,
           description: b.description,
+          screenshot_url: b.screenshot_url, // FIXED: Now passing the HF URL to state
         })));
     } catch (err) { setError(true); } finally { setLoading(false); }
   };
@@ -128,7 +132,6 @@ function BugDashboardContent() {
 
   return (
     <div className="min-h-screen bg-white text-[#475569] font-sans">
-      {/* 2. REPLACED OLD NAV WITH SHARED NAVBAR */}
       <Navbar />
 
       <main className={`${containerClass} py-8`}>
@@ -168,7 +171,6 @@ function BugDashboardContent() {
           </div>
         ) : (
           <>
-            {/* View Controls */}
             <div className="bg-white p-3 rounded-t-xl border flex justify-between items-center">
               <div className="relative w-64">
                 <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -185,7 +187,6 @@ function BugDashboardContent() {
               </div>
             </div>
 
-            {/* Bug Content */}
             <div className="bg-white rounded-b-xl border border-t-0 shadow-sm min-h-[300px]">
               {loading ? (
                 <div className="flex flex-col items-center py-12 gap-2 text-[#94A3B8]">
@@ -199,7 +200,6 @@ function BugDashboardContent() {
               )}
             </div>
 
-            {/* Pagination */}
             {filteredBugs.length > 0 && (
               <div className="mt-6 flex justify-between items-center border-t border-gray-100 pt-4">
                 <p className="text-[11px] text-[#94A3B8] font-medium">
@@ -227,7 +227,6 @@ function BugDashboardContent() {
         )}
       </main>
 
-      {/* Modals */}
       {role === "qa" && projectIdParam && token && (
         <AddBugModal 
           isOpen={isAddBugOpen} 
