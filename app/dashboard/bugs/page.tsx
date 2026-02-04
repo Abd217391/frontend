@@ -4,7 +4,6 @@ import { API_BASE_URL } from "@/utils/constants";
 import React, { useEffect, useState, Suspense } from "react";
 import {
   Plus,
-  Bell,
   Search,
   ChevronLeft,
   ChevronRight,
@@ -12,16 +11,14 @@ import {
   LayoutGrid,
   RefreshCw,
   Smile,
-  ChevronDown,
-  LogOut,
 } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
+import Navbar from "@/components/dashboard/Navbar"; // 1. IMPORT SHARED NAVBAR
 import AddBugModal from "@/components/qa/AddBugModal";
 import BugDetailsModal from "@/components/bugs/BugDetailsModal";
 import BugListView from "@/components/bugs/BuglistView";
 import BugGridView from "@/components/bugs/BugGridView";
 import { Bug } from "@/types/bugs";
-
 
 interface Project {
   id: number;
@@ -42,7 +39,6 @@ function BugDashboardContent() {
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   const [isAddBugOpen, setIsAddBugOpen] = useState(false);
   const [selectedBug, setSelectedBug] = useState<Bug | null>(null);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [mounted, setMounted] = useState(false);
@@ -54,7 +50,6 @@ function BugDashboardContent() {
 
   const fetchProjects = async (authToken: string, userRole: string) => {
     try {
-      // --- UPDATED URL ---
       const url = userRole === "manager" || userRole === "qa"
           ? `${API_BASE_URL}/${userRole}/projectstodisplaythehisownprojects`
           : `${API_BASE_URL}/developer/projects`;
@@ -72,7 +67,6 @@ function BugDashboardContent() {
     setLoading(true);
     setError(false);
     try {
-      // --- UPDATED URL LOGIC ---
       let url = "";
       if (userRole === "manager" || userRole === "qa") {
         url = projId ? `${API_BASE_URL}/${userRole}/projects/${projId}/bugs` : `${API_BASE_URL}/bugs`;
@@ -111,14 +105,10 @@ function BugDashboardContent() {
     setCurrentPage(1);
   }, [search]);
 
-  // ... (Keep the rest of your filtering and UI logic exactly the same) ...
-
   const filteredBugs = bugs.filter((b) => b.title.toLowerCase().includes(search.toLowerCase()));
   const totalPages = Math.ceil(filteredBugs.length / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;
   const currentBugs = filteredBugs.slice(startIndex, startIndex + rowsPerPage);
-
-  const handleLogout = () => { localStorage.clear(); router.replace("/login"); };
 
   const handleProjectChange = (projId: string) => {
     if (!token || !role) return;
@@ -138,54 +128,30 @@ function BugDashboardContent() {
 
   return (
     <div className="min-h-screen bg-white text-[#475569] font-sans">
-      {/* ... (Your existing JSX code) ... */}
-      <nav className="bg-white border-b border-gray-100 sticky top-0 z-40">
-        <div className={`${containerClass} flex items-center justify-between py-2`}>
-          <div className="flex items-center gap-10">
-            <div className="cursor-pointer" onClick={() => router.push("/dashboard/project")}>
-              <img src="/logo.png" alt="ManageBug" className="h-5" />
-            </div>
-            <div className="flex items-center gap-5">
-              <button onClick={() => router.push("/dashboard/project")} className="flex items-center gap-1.5 text-[#94A3B8] text-[13px] font-medium hover:text-[#3B82F6]">
-                <img src="/projects.png" className="h-3.5 w-3.5" alt="" />
-                <span>Projects</span>
-              </button>
-              <button onClick={() => { setProjectName(null); if(token && role) fetchBugs(null, token, role); router.push("/dashboard/bugs"); }} className="flex items-center gap-1.5 text-[#3B82F6] text-[13px] font-medium">
-                <img src="/bug.png" className="h-3.5" alt="" />
-                <span>Bugs</span>
-              </button>
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <Bell size={12} className="text-[#94A3B8] cursor-pointer" />
-            <div className="relative">
-              <div onClick={() => setIsProfileOpen(!isProfileOpen)} className="flex items-center gap-2 bg-[#F8FAFC] px-2 py-1 rounded-md border border-gray-100 cursor-pointer">
-                <div className="w-6 h-6 bg-[#0F172A] rounded-md flex items-center justify-center text-white text-[10px] font-bold">V</div>
-                <span className="text-[11px] font-bold text-[#1E293B] uppercase">{role || "User"}</span>
-                <ChevronDown size={10} />
-              </div>
-              {isProfileOpen && (
-                <div className="absolute right-0 mt-2 w-32 bg-white border rounded-lg shadow-lg py-1 z-50">
-                  <button onClick={handleLogout} className="w-full px-3 py-1.5 text-[11px] text-red-500 flex items-center gap-2 hover:bg-red-50"><LogOut size={10} /> Logout</button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
+      {/* 2. REPLACED OLD NAV WITH SHARED NAVBAR */}
+      <Navbar />
 
       <main className={`${containerClass} py-8`}>
         <div className="flex justify-between items-center mb-5">
           <h1 className="text-2xl font-bold text-[#1E293B]">{projectName ? `${projectName} ` : "All Bugs Listing"}</h1>
           <div className="flex items-center gap-2">
             {projectsList.length > 0 && (
-              <select value={projectIdParam || ""} onChange={(e) => handleProjectChange(e.target.value)} className="text-xs border border-gray-200 rounded-lg p-1 bg-white">
+              <select 
+                value={projectIdParam || ""} 
+                onChange={(e) => handleProjectChange(e.target.value)} 
+                className="text-xs border border-gray-200 rounded-lg p-1 bg-white outline-none focus:ring-1 focus:ring-blue-400"
+              >
                 <option value="">All Projects</option>
                 {projectsList.map((p) => <option key={p.id} value={p.id}>{p.title}</option>)}
               </select>
             )}
             {role === "qa" && projectIdParam && (
-              <button onClick={() => setIsAddBugOpen(true)} className="bg-[#3B82F6] text-white px-3 py-1.5 rounded-lg flex items-center gap-1.5 text-[12px] font-semibold"><Plus size={12} /> New Task Bug</button>
+              <button 
+                onClick={() => setIsAddBugOpen(true)} 
+                className="bg-[#3B82F6] text-white px-3 py-1.5 rounded-lg flex items-center gap-1.5 text-[12px] font-semibold hover:bg-blue-600 transition"
+              >
+                <Plus size={12} /> New Task Bug
+              </button>
             )}
           </div>
         </div>
@@ -197,13 +163,21 @@ function BugDashboardContent() {
             <button onClick={() => { if(token && role) fetchBugs(projectIdParam, token, role)}} className="mt-3 flex items-center gap-2 bg-slate-800 text-white px-4 py-1.5 rounded-md text-xs"><RefreshCw size={12} /> Try Again</button>
           </div>
         ) : !loading && bugs.length === 0 ? (
-          <div className="bg-[#F8FAFC] border-2 border-dashed rounded-2xl p-12 text-center"><h3 className="text-sm font-bold">No bugs exist</h3></div>
+          <div className="bg-[#F8FAFC] border-2 border-dashed rounded-2xl p-12 text-center">
+            <h3 className="text-sm font-bold text-[#94A3B8]">No bugs found for this selection</h3>
+          </div>
         ) : (
           <>
-            <div className="bg-white p-3 rounded-t-xl border flex justify-between">
+            {/* View Controls */}
+            <div className="bg-white p-3 rounded-t-xl border flex justify-between items-center">
               <div className="relative w-64">
                 <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input placeholder="Search bugs..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 pr-3 py-1.5 w-full bg-[#F8FAFC] border rounded-lg text-xs" />
+                <input 
+                  placeholder="Search bugs..." 
+                  value={search} 
+                  onChange={(e) => setSearch(e.target.value)} 
+                  className="pl-9 pr-3 py-1.5 w-full bg-[#F8FAFC] border rounded-lg text-xs outline-none" 
+                />
               </div>
               <div className="flex bg-[#F1F5F9] p-0.5 rounded-lg gap-1">
                 <button onClick={() => setViewMode("list")} className={`p-1 rounded transition ${viewMode === 'list' ? 'bg-white shadow-sm text-blue-500' : 'text-gray-400'}`}><List size={14} /></button>
@@ -211,9 +185,13 @@ function BugDashboardContent() {
               </div>
             </div>
 
-            <div className="bg-white rounded-b-xl border shadow-sm min-h-[300px]">
+            {/* Bug Content */}
+            <div className="bg-white rounded-b-xl border border-t-0 shadow-sm min-h-[300px]">
               {loading ? (
-                <div className="flex flex-col items-center py-12 gap-2"><RefreshCw className="animate-spin" size={20} /><p className="text-xs">Fetching bugs...</p></div>
+                <div className="flex flex-col items-center py-12 gap-2 text-[#94A3B8]">
+                  <RefreshCw className="animate-spin" size={20} />
+                  <p className="text-xs">Fetching bugs...</p>
+                </div>
               ) : viewMode === "list" ? (
                 <BugListView bugs={currentBugs} onBugClick={setSelectedBug} />
               ) : (
@@ -221,6 +199,7 @@ function BugDashboardContent() {
               )}
             </div>
 
+            {/* Pagination */}
             {filteredBugs.length > 0 && (
               <div className="mt-6 flex justify-between items-center border-t border-gray-100 pt-4">
                 <p className="text-[11px] text-[#94A3B8] font-medium">
@@ -235,11 +214,11 @@ function BugDashboardContent() {
                     </select>
                   </div>
                   <div className="flex items-center gap-1">
-                    <button disabled={currentPage === 1} onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} className="w-7 h-7 flex items-center justify-center bg-[#F1F5F9] rounded-md disabled:opacity-50"><ChevronLeft size={14} /></button>
+                    <button disabled={currentPage === 1} onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} className="w-7 h-7 flex items-center justify-center bg-[#F1F5F9] rounded-md disabled:opacity-50 hover:bg-gray-200"><ChevronLeft size={14} /></button>
                     {Array.from({ length: totalPages }, (_, i) => (
-                      <button key={i + 1} onClick={() => setCurrentPage(i + 1)} className={`w-7 h-7 flex items-center justify-center rounded-md text-[11px] font-bold ${currentPage === i + 1 ? "bg-[#3B82F6] text-white" : "text-[#64748B]"}`}>{i + 1}</button>
+                      <button key={i + 1} onClick={() => setCurrentPage(i + 1)} className={`w-7 h-7 flex items-center justify-center rounded-md text-[11px] font-bold ${currentPage === i + 1 ? "bg-[#3B82F6] text-white shadow-sm" : "text-[#64748B] hover:bg-gray-50"}`}>{i + 1}</button>
                     ))}
-                    <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} className="w-7 h-7 flex items-center justify-center bg-[#F1F5F9] rounded-md disabled:opacity-50"><ChevronRight size={14} /></button>
+                    <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} className="w-7 h-7 flex items-center justify-center bg-[#F1F5F9] rounded-md disabled:opacity-50 hover:bg-gray-200"><ChevronRight size={14} /></button>
                   </div>
                 </div>
               </div>
@@ -248,12 +227,22 @@ function BugDashboardContent() {
         )}
       </main>
 
+      {/* Modals */}
       {role === "qa" && projectIdParam && token && (
-        <AddBugModal isOpen={isAddBugOpen} onClose={() => { setIsAddBugOpen(false); fetchBugs(projectIdParam, token, role); }} projectId={Number(projectIdParam)} handleBugAdded={() => { setIsAddBugOpen(false); fetchBugs(projectIdParam, token, role); }} />
+        <AddBugModal 
+          isOpen={isAddBugOpen} 
+          onClose={() => { setIsAddBugOpen(false); fetchBugs(projectIdParam, token, role); }} 
+          projectId={Number(projectIdParam)} 
+          handleBugAdded={() => { setIsAddBugOpen(false); fetchBugs(projectIdParam, token, role); }} 
+        />
       )}
 
       {selectedBug && (
-        <BugDetailsModal bug={selectedBug} isOpen={!!selectedBug} onClose={() => { setSelectedBug(null); if(token && role) fetchBugs(projectIdParam, token, role); }} />
+        <BugDetailsModal 
+          bug={selectedBug} 
+          isOpen={!!selectedBug} 
+          onClose={() => { setSelectedBug(null); if(token && role) fetchBugs(projectIdParam, token, role); }} 
+        />
       )}
     </div>
   );

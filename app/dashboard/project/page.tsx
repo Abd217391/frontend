@@ -3,13 +3,11 @@
 import { API_BASE_URL } from "@/utils/constants";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Navbar from "@/components/dashboard/Navbar";
 import AddProjectModal from "@/components/manager/AddProjectModal";
-import { Search, Plus, Bell, ChevronDown, LogOut, User, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 
-// --- URL LOGIC ADDED HERE ---
-
-
-// images for projects card
+// Images for projects card
 const PROJECT_IMAGES = [
   "/image1.png", "/image2.png", "/image3.png",
   "/image4.png", "/image5.png", "/image6.png",
@@ -32,7 +30,6 @@ export default function ManagerDashboard() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [role, setRole] = useState<string | null>(null);
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -40,6 +37,7 @@ export default function ManagerDashboard() {
 
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : "";
 
+  // 1. Fetch User Role for logic (Manager vs Developer)
   useEffect(() => {
     if (!token) {
       router.replace("/login");
@@ -48,7 +46,6 @@ export default function ManagerDashboard() {
 
     async function fetchRole() {
       try {
-        // --- UPDATED URL ---
         const res = await fetch(`${API_BASE_URL}/auth/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -61,10 +58,10 @@ export default function ManagerDashboard() {
     fetchRole();
   }, [token, router]);
 
+  // 2. Fetch Projects based on Role
   async function fetchProjects() {
     if (!token || !role) return;
     try {
-      // --- UPDATED URL LOGIC ---
       const url = role === "manager" || role === "qa"
           ? `${API_BASE_URL}/${role}/projectstodisplaythehisownprojects`
           : `${API_BASE_URL}/developer/projects`;
@@ -91,9 +88,9 @@ export default function ManagerDashboard() {
 
   useEffect(() => {
     if (role && token) fetchProjects();
-  }, [role]);
+  }, [role, token]);
 
-  // Reset to page 1 when searching
+  // Search and Pagination Logic
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery]);
@@ -112,50 +109,11 @@ export default function ManagerDashboard() {
 
   return (
     <div className="min-h-screen bg-white text-[#475569]">
-      {/* ... Navigation remains the same ... */}
-      <nav className="bg-white border-b border-gray-100 top-0 z-40">
-        <div className={`${containerClass} flex items-center justify-between py-2`}>
-          <div className="flex items-center gap-10">
-            <div className="cursor-pointer" onClick={() => router.push("/dashboard/project")}>
-              <img src="/logo.png" alt="ManageBug" className="h-5 object-contain" />
-            </div>
-            <div className="flex items-center gap-5">
-              <button className="flex items-center gap-1.5 text-[13px] font-medium border border-transparent hover:text-[#3B82F6]">
-                <img src="/projects.png" alt="" className="h-3.5 w-3.5" />
-                <span>Projects</span>
-              </button>
-              <button onClick={() => { if (!role) return; router.push(`/dashboard/bugs`); }} className="flex items-center gap-1.5 text-[#94A3B8] text-[13px] font-medium hover:text-[#3B82F6] transition-colors">
-                <img className="h-3.5" src="/bug.png" alt="" />
-                <span>Bugs</span>
-              </button>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <Bell size={16} className="text-[#94A3B8] cursor-pointer" />
-            <div className="relative">
-              <div onClick={() => setIsProfileOpen(!isProfileOpen)} className="flex items-center gap-2 bg-[#F8FAFC] px-2 py-1 rounded-md border border-gray-100 cursor-pointer">
-                <div className="w-6 h-6 bg-[#0F172A] rounded-md flex items-center justify-center text-white text-[10px] font-bold">V</div>
-                <span className="text-[11px] font-bold text-[#1E293B]">{role?.toUpperCase()}.</span>
-                <ChevronDown className={isProfileOpen ? "rotate-180" : ""} size={12} />
-              </div>
-
-              {isProfileOpen && (
-                <div className="absolute right-0 mt-2 w-32 bg-white border border-gray-100 rounded-lg shadow-lg py-1 z-50">
-                  <button onClick={() => { setIsProfileOpen(false); router.push("/dashboard/profile"); }} className="w-full text-left px-3 py-1.5 text-[11px] flex items-center gap-2 hover:bg-gray-50 border-b border-gray-50">
-                    <User size={12} /> Profile
-                  </button>
-                  <button onClick={() => { localStorage.clear(); router.replace("/login"); }} className="w-full text-left px-3 py-1.5 text-[11px] text-red-500 flex items-center gap-2 hover:bg-red-50">
-                    <LogOut size={12} /> Logout
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
+      {/* SHARED NAVBAR COMPONENT */}
+      <Navbar />
 
       <main className={`${containerClass} py-8`}>
+        {/* Header Section */}
         <div className="flex justify-between items-center mb-5">
           <div className="border-l-[3px] border-[#22C55E] pl-3">
             <h1 className="text-base font-bold text-[#1E293B]">Visnext Software Solutions</h1>
@@ -169,11 +127,14 @@ export default function ManagerDashboard() {
                 placeholder="Search projects..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-[200px] bg-[#F8FAFC] border border-gray-100 rounded-lg py-1.5 pl-8 pr-3 text-[12px]"
+                className="w-[200px] bg-[#F8FAFC] border border-gray-100 rounded-lg py-1.5 pl-8 pr-3 text-[12px] outline-none focus:ring-1 focus:ring-blue-400"
               />
             </div>
             {role === "manager" && (
-              <button onClick={() => setIsProjectModalOpen(true)} className="bg-[#3B82F6] text-white px-3 py-1.5 rounded-lg flex items-center gap-1 text-[12px] font-semibold">
+              <button 
+                onClick={() => setIsProjectModalOpen(true)} 
+                className="bg-[#3B82F6] text-white px-3 py-1.5 rounded-lg flex items-center gap-1 text-[12px] font-semibold hover:bg-blue-600 transition"
+              >
                 <Plus size={14} /> Add Project
               </button>
             )}
@@ -182,6 +143,7 @@ export default function ManagerDashboard() {
 
         <hr className="opacity-5 mb-6" />
 
+        {/* Projects Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 min-h-[400px]">
           {currentProjects.length ? (
             currentProjects.map((p) => (
@@ -194,8 +156,8 @@ export default function ManagerDashboard() {
                   <img className="h-5" src={p.projectImage} alt="" />
                 </div>
                 <h1 className="font-bold text-black">{p.title}</h1>
-                <p className="text-[11px] text-[#64748B]">{p.description}</p>
-                <p className="text-[11px] mt-1 font-medium">Tasks Done: 2/22</p>
+                <p className="text-[11px] text-[#64748B] line-clamp-2">{p.description}</p>
+                <p className="text-[11px] mt-1 font-medium">Tasks Done: {p.tasksDone}</p>
               </div>
             ))
           ) : (
@@ -205,6 +167,7 @@ export default function ManagerDashboard() {
           )}
         </div>
 
+        {/* Pagination Section */}
         {filteredProjects.length > 0 && (
           <div className="mt-10 flex justify-between items-center border-t border-gray-50 pt-6">
             <p className="text-[11px] text-[#94A3B8] font-medium">
@@ -255,6 +218,7 @@ export default function ManagerDashboard() {
         )}
       </main>
 
+      {/* Modals */}
       {isProjectModalOpen && role === "manager" && (
         <AddProjectModal
           setIsProjectModalOpen={setIsProjectModalOpen}

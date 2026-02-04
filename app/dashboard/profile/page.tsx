@@ -3,20 +3,14 @@
 import { API_BASE_URL } from "@/utils/constants";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Navbar from "@/components/dashboard/Navbar";// 1. Import your shared Navbar
 import {
-  Bell,
-  ChevronDown,
   User,
   Phone,
   Mail,
   Lock,
-  LogOut,
   Edit2,
-  Eye,
 } from "lucide-react";
-
-// --- URL LOGIC ADDED HERE ---
-
 
 interface UserProfile {
   id: number;
@@ -39,19 +33,17 @@ export default function ProfileSettings() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("token") : null;
-  const role =
-    typeof window !== "undefined" ? localStorage.getItem("role") : null;
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
   // Fetch profile
   useEffect(() => {
     const fetchProfile = async () => {
-      if (!token) return;
+      if (!token) {
+        router.push("/login");
+        return;
+      }
       try {
-        // --- UPDATED URL ---
         const res = await fetch(`${API_BASE_URL}/auth/me`, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -62,13 +54,11 @@ export default function ProfileSettings() {
           const data = await res.json();
           setProfile(data);
           setFormData({
-            name: data.name,
-            email: data.email,
-            phone: data.phone,
+            name: data.name || "",
+            email: data.email || "",
+            phone: data.phone || "",
             password: "",
           });
-        } else {
-          console.error("Profile fetch failed:", res.status);
         }
       } catch (err) {
         console.error("Network error:", err);
@@ -77,14 +67,7 @@ export default function ProfileSettings() {
       }
     };
     fetchProfile();
-  }, [token]);
-
-  if (loading)
-    return (
-      <div className="p-10 text-center text-sm font-medium text-slate-400">
-        Loading Profile...
-      </div>
-    );
+  }, [token, router]);
 
   const handleChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -105,7 +88,6 @@ export default function ProfileSettings() {
         payload[field] = formData[field as keyof typeof formData];
       }
 
-      // --- UPDATED URL ---
       const res = await fetch(`${API_BASE_URL}/auth/`, {
         method: "PATCH",
         headers: {
@@ -124,161 +106,139 @@ export default function ProfileSettings() {
       setProfile(updatedProfile);
       setEditingField(null);
       if (field === "password") setFormData((prev) => ({ ...prev, password: "" }));
-      alert(`${field} updated successfully!`);
+      alert(`${field.charAt(0).toUpperCase() + field.slice(1)} updated successfully!`);
     } catch (err: any) {
-      console.error(err);
       alert(err.message);
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  if (loading) return (
+    <div className="min-h-screen bg-white">
+      <Navbar />
+      <div className="p-10 text-center text-sm font-medium text-slate-400">Loading Profile...</div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-white font-sans">
-      {/* --- NAVBAR --- */}
-      <nav className="bg-white border-b border-gray-100 py-1 px-8 flex items-center justify-between">
-        <div className="flex items-center ">
-          <img
-            src="/logo.png"
-            alt="ManageBug"
-            className="h-5 cursor-pointer absolute left-65"
-            onClick={() => router.push("/dashboard/project")}
-          />
-          <div className="flex gap-8 text-[12px] font-semibold text-gray-400 absolute left-95">
-            <button
-              onClick={() => router.push("/dashboard/project")}
-              className="hover:text-blue-500 flex items-center gap-1"
-            >
-              <img src="/projects.png" alt="Projects" className="h-4 w-4" />
-              Projects
-            </button>
-            <button
-              onClick={() => router.push("/dashboard/bugs")}
-              className="hover:text-blue-500 flex items-center gap-1"
-            >
-              <img src="/bug.png" alt="Bugs" className="h-4 w-4" />
-              Bugs
-            </button>
-          </div>
-        </div>
-        <div className="flex items-center gap-5 relative right-54 ">
-          <Bell size={18} className="text-gray-300" />
-          <div
-            className="flex items-center gap-2 bg-[#F8FAFC] px-3 py-1.5 rounded-lg border border-gray-100 cursor-pointer  "
-            onClick={() => setIsProfileOpen(!isProfileOpen)}
-          >
-            <div className="w-7 h-7 bg-[#1E293B] rounded-lg flex items-center justify-center text-white text-[10px] font-bold">
-              {profile?.name?.charAt(0).toUpperCase()}
-            </div>
-            <span className="text-[11px] font-bold text-gray-700 uppercase">
-              {profile?.role || role}
-            </span>
-            <ChevronDown size={14} className="text-gray-400" />
-          </div>
-        </div>
-      </nav>
+      {/* 2. SHARED NAVBAR COMPONENT */}
+      <Navbar />
 
-      <main className="max-w-[1000px] mx-auto pt-16 flex flex-col items-center px-6">
-        <div className="w-full max-w-2xl flex flex-col items-center">
-          <div className="flex items-center gap-6 mb-10">
-            <div className="w-28 h-28 rounded-full flex items-center justify-center border-4 border-white shadow-sm relative left-19">
+      <main className="max-w-[1000px] mx-auto pt-12 flex flex-col items-center px-6">
+        <div className="w-full max-w-md flex flex-col items-center">
+          
+          {/* Header Section */}
+          <div className="flex flex-col items-center mb-10 w-full">
+            <div className="w-24 h-24 rounded-full border-4 border-gray-50 shadow-sm mb-4 overflow-hidden">
               <img
                 src="/profile.png"
                 alt="Profile"
-                className="h-full w-full object-cover rounded-full"
+                className="h-full w-full object-cover"
               />
             </div>
-            <h2 className="text-2xl font-bold text-[#1E293B] relative right-110">Profile Settings</h2>
+            <h2 className="text-xl font-bold text-[#1E293B]">Profile Settings</h2>
+            <p className="text-xs text-gray-400 mt-1 uppercase font-bold tracking-wider">{profile?.role}</p>
           </div>
 
-          <div className="space-y-6 w-full max-w-md">
-            {/* Name */}
-            <div className="flex items-center gap-2 relative">
-              <User className="text-gray-400" size={18} />
-              {editingField === "name" ? (
-                <>
-                  <input
-                    value={formData.name}
-                    onChange={(e) => handleChange("name", e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg py-2 px-3"
-                  />
-                  <button onClick={() => handleSave("name")} className="ml-2 px-3 py-1 bg-blue-600 text-white rounded-lg">Save</button>
-                  <button onClick={() => setEditingField(null)} className="ml-2 px-2 py-1 bg-gray-200 rounded-lg">Cancel</button>
-                </>
-              ) : (
-                <>
-                  <div className="flex-1 py-2 px-3 bg-gray-100 rounded-lg">{profile?.name}</div>
-                  <Edit2 className="cursor-pointer text-gray-500" size={16} onClick={() => setEditingField("name")} />
-                </>
-              )}
+          {/* Form Fields */}
+          <div className="space-y-4 w-full">
+            
+            {/* Name Field */}
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold text-gray-400 ml-1 uppercase">Full Name</label>
+              <div className="flex items-center gap-3 bg-[#F8FAFC] border border-gray-100 rounded-xl p-3">
+                <User className="text-gray-400" size={16} />
+                {editingField === "name" ? (
+                  <div className="flex flex-1 items-center gap-2">
+                    <input
+                      autoFocus
+                      value={formData.name}
+                      onChange={(e) => handleChange("name", e.target.value)}
+                      className="flex-1 bg-transparent text-sm outline-none"
+                    />
+                    <button disabled={isSubmitting} onClick={() => handleSave("name")} className="text-[11px] font-bold text-blue-600">SAVE</button>
+                  </div>
+                ) : (
+                  <div className="flex flex-1 justify-between items-center">
+                    <span className="text-sm text-[#1E293B]">{profile?.name}</span>
+                    <Edit2 className="cursor-pointer text-gray-400 hover:text-blue-500 transition" size={14} onClick={() => setEditingField("name")} />
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* Email */}
-            <div className="flex items-center gap-2 relative">
-              <Mail className="text-gray-400" size={18} />
-              {editingField === "email" ? (
-                <>
-                  <input
-                    value={formData.email}
-                    onChange={(e) => handleChange("email", e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg py-2 px-3"
-                  />
-                  <button onClick={() => handleSave("email")} className="ml-2 px-3 py-1 bg-blue-600 text-white rounded-lg">Save</button>
-                  <button onClick={() => setEditingField(null)} className="ml-2 px-2 py-1 bg-gray-200 rounded-lg">Cancel</button>
-                </>
-              ) : (
-                <>
-                  <div className="flex-1 py-2 px-3 bg-gray-100 rounded-lg">{profile?.email}</div>
-                  <Edit2 className="cursor-pointer text-gray-500" size={16} onClick={() => setEditingField("email")} />
-                </>
-              )}
+            {/* Email Field */}
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold text-gray-400 ml-1 uppercase">Email Address</label>
+              <div className="flex items-center gap-3 bg-[#F8FAFC] border border-gray-100 rounded-xl p-3">
+                <Mail className="text-gray-400" size={16} />
+                {editingField === "email" ? (
+                  <div className="flex flex-1 items-center gap-2">
+                    <input
+                      value={formData.email}
+                      onChange={(e) => handleChange("email", e.target.value)}
+                      className="flex-1 bg-transparent text-sm outline-none"
+                    />
+                    <button disabled={isSubmitting} onClick={() => handleSave("email")} className="text-[11px] font-bold text-blue-600">SAVE</button>
+                  </div>
+                ) : (
+                  <div className="flex flex-1 justify-between items-center">
+                    <span className="text-sm text-[#1E293B]">{profile?.email}</span>
+                    <Edit2 className="cursor-pointer text-gray-400 hover:text-blue-500 transition" size={14} onClick={() => setEditingField("email")} />
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* Phone */}
-            <div className="flex items-center gap-2 relative">
-              <Phone className="text-gray-400" size={18} />
-              {editingField === "phone" ? (
-                <>
-                  <input
-                    value={formData.phone}
-                    onChange={(e) => handleChange("phone", e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg py-2 px-3"
-                  />
-                  <button onClick={() => handleSave("phone")} className="ml-2 px-3 py-1 bg-blue-600 text-white rounded-lg">Save</button>
-                  <button onClick={() => setEditingField(null)} className="ml-2 px-2 py-1 bg-gray-200 rounded-lg">Cancel</button>
-                </>
-              ) : (
-                <>
-                  <div className="flex-1 py-2 px-3 bg-gray-100 rounded-lg">{profile?.phone}</div>
-                  <Edit2 className="cursor-pointer text-gray-500" size={16} onClick={() => setEditingField("phone")} />
-                </>
-              )}
+            {/* Phone Field */}
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold text-gray-400 ml-1 uppercase">Phone Number</label>
+              <div className="flex items-center gap-3 bg-[#F8FAFC] border border-gray-100 rounded-xl p-3">
+                <Phone className="text-gray-400" size={16} />
+                {editingField === "phone" ? (
+                  <div className="flex flex-1 items-center gap-2">
+                    <input
+                      value={formData.phone}
+                      onChange={(e) => handleChange("phone", e.target.value)}
+                      className="flex-1 bg-transparent text-sm outline-none"
+                    />
+                    <button disabled={isSubmitting} onClick={() => handleSave("phone")} className="text-[11px] font-bold text-blue-600">SAVE</button>
+                  </div>
+                ) : (
+                  <div className="flex flex-1 justify-between items-center">
+                    <span className="text-sm text-[#1E293B]">{profile?.phone || "No phone added"}</span>
+                    <Edit2 className="cursor-pointer text-gray-400 hover:text-blue-500 transition" size={14} onClick={() => setEditingField("phone")} />
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* Password */}
-            <div className="flex items-center gap-2 relative">
-              <Lock className="text-gray-400" size={18} />
-              {editingField === "password" ? (
-                <>
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    value={formData.password}
-                    onChange={(e) => handleChange("password", e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg py-2 px-3"
-                    placeholder="New password"
-                  />
-                  <button onClick={() => handleSave("password")} className="ml-2 px-3 py-1 bg-blue-600 text-white rounded-lg">Save</button>
-                  <button onClick={() => setEditingField(null)} className="ml-2 px-2 py-1 bg-gray-200 rounded-lg">Cancel</button>
-                  <button onClick={() => setShowPassword((prev) => !prev)} className="ml-2 px-2 py-1 bg-gray-100 rounded-lg">
-                    {showPassword ? "Hide" : "Show"}
-                  </button>
-                </>
-              ) : (
-                <>
-                  <div className="flex-1 py-2 px-3 bg-gray-100 rounded-lg">********</div>
-                  <Edit2 className="cursor-pointer text-gray-500" size={16} onClick={() => setEditingField("password")} />
-                </>
-              )}
+            {/* Password Field */}
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold text-gray-400 ml-1 uppercase">Account Password</label>
+              <div className="flex items-center gap-3 bg-[#F8FAFC] border border-gray-100 rounded-xl p-3">
+                <Lock className="text-gray-400" size={16} />
+                {editingField === "password" ? (
+                  <div className="flex flex-1 items-center gap-2">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Enter new password"
+                      value={formData.password}
+                      onChange={(e) => handleChange("password", e.target.value)}
+                      className="flex-1 bg-transparent text-sm outline-none"
+                    />
+                    <button onClick={() => setShowPassword(!showPassword)} className="text-[10px] text-gray-400 uppercase font-bold">{showPassword ? "Hide" : "Show"}</button>
+                    <button disabled={isSubmitting} onClick={() => handleSave("password")} className="text-[11px] font-bold text-blue-600">UPDATE</button>
+                  </div>
+                ) : (
+                  <div className="flex flex-1 justify-between items-center">
+                    <span className="text-sm text-[#1E293B]">••••••••</span>
+                    <Edit2 className="cursor-pointer text-gray-400 hover:text-blue-500 transition" size={14} onClick={() => setEditingField("password")} />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
