@@ -231,7 +231,7 @@ function BugDashboardContent() {
             </div>
 
             {filteredBugs.length > 0 && (
-              <div className="mt-6 flex justify-between items-center border-t border-gray-100 pt-4">
+              <div className="mt-6 flex justify-between items-center border-t border-gray-100 pt-4 relative top-45">
                 <p className="text-[11px] text-[#94A3B8] font-medium">
                   Showing {startIndex + 1} to {Math.min(startIndex + rowsPerPage, filteredBugs.length)} of {filteredBugs.length} entries
                 </p>

@@ -162,7 +162,7 @@ export default function ManagerDashboard() {
         </div>
 
         {filteredProjects.length > 0 && (
-          <div className="mt-10 flex justify-between items-center border-t border-gray-50 pt-6">
+          <div className="mt-20 flex justify-between items-center border-t border-gray-50 relative top-23 ">
             <p className="text-[11px] text-[#94A3B8] font-medium">
               Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredProjects.length)} of {filteredProjects.length} entries
             </p>
