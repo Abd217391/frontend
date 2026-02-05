@@ -2,6 +2,7 @@
 
 import { API_BASE_URL } from "@/utils/constants";
 import React, { useEffect, useState, Suspense } from "react";
+import Sentiment from "sentiment"; 
 import {
   Plus,
   Search,
@@ -11,6 +12,9 @@ import {
   LayoutGrid,
   RefreshCw,
   Smile,
+  AlertCircle,   // Added icon for High Risk
+  ShieldCheck,   // Added icon for Low Risk
+  MinusCircle    // Added icon for Neutral
 } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Navbar from "@/components/dashboard/Navbar"; 
@@ -19,6 +23,8 @@ import BugDetailsModal from "@/components/bugs/BugDetailsModal";
 import BugListView from "@/components/bugs/BuglistView";
 import BugGridView from "@/components/bugs/BugGridView";
 import { Bug } from "@/types/bugs";
+
+const sentimentAnalyzer = new Sentiment(); // Initialize outside component
 
 interface Project {
   id: number;
@@ -46,7 +52,6 @@ function BugDashboardContent() {
   const [token, setToken] = useState<string | null>(null);
   const [role, setRole] = useState<string | null>(null);
   
-  // --- UPDATED: Rows per page state ---
   const [rowsPerPage, setRowsPerPage] = useState(6);
   const containerClass = "max-w-[1000px] mx-auto px-6";
 
@@ -79,16 +84,29 @@ function BugDashboardContent() {
       if (!res.ok) { setBugs([]); setLoading(false); return; }
       const data = await res.json();
       
-      setBugs(data.map((b: any) => ({
-          id: b.id,
-          title: b.title,
-          status: b.status || "new",
-          type: b.type || "bug", 
-          assignees: b.assignments?.map((a: any) => ({ name: a.user?.name || "Unknown" })) || [],
-          deadline: b.deadline,
-          description: b.description,
-          screenshot_url: b.screenshot_url,
-        })));
+      setBugs(data.map((b: any) => {
+          // --- FEATURE: Sentiment Analysis Per Bug ---
+          const analysis = sentimentAnalyzer.analyze(`${b.title} ${b.description || ""}`);
+          let sentimentData = { label: "Standard", color: "text-blue-500", icon: <MinusCircle size={12} /> };
+          
+          if (analysis.score <= -1) {
+            sentimentData = { label: "High Risk", color: "text-red-500", icon: <AlertCircle size={12} /> };
+          } else if (analysis.score >= 3) {
+            sentimentData = { label: "Low Risk", color: "text-emerald-500", icon: <ShieldCheck size={12} /> };
+          }
+
+          return {
+            id: b.id,
+            title: b.title,
+            status: b.status || "new",
+            type: b.type || "bug", 
+            assignees: b.assignments?.map((a: any) => ({ name: a.user?.name || "Unknown" })) || [],
+            deadline: b.deadline,
+            description: b.description,
+            screenshot_url: b.screenshot_url,
+            sentiment: sentimentData // Injected feature
+          };
+      }));
     } catch (err) { setError(true); } finally { setLoading(false); }
   };
 
@@ -136,6 +154,16 @@ function BugDashboardContent() {
       <Navbar />
 
       <main className={`${containerClass} py-8`}>
+        {/* Sentiment Legend - Injected without disturbing existing layout */}
+        <div className="flex gap-4 mb-4">
+           <div className="flex items-center gap-1 text-[10px] font-bold text-red-500 uppercase tracking-tighter">
+             <AlertCircle size={10} /> High Risk
+           </div>
+           <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-500 uppercase tracking-tighter">
+             <ShieldCheck size={10} /> Low Risk
+           </div>
+        </div>
+
         <div className="flex justify-between items-center mb-5">
           <h1 className="text-2xl font-bold text-[#1E293B]">{projectName ? `${projectName} ` : "All Bugs Listing"}</h1>
           <div className="flex items-center gap-2">
@@ -209,7 +237,6 @@ function BugDashboardContent() {
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
                     <span className="text-[11px] text-[#94A3B8] font-medium">Display</span>
-                    {/* --- UPDATED: Dynamic Dropdown 1 to 6 --- */}
                     <select 
                       value={rowsPerPage} 
                       onChange={(e) => { 
