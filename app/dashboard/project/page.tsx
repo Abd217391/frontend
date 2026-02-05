@@ -7,7 +7,6 @@ import Navbar from "@/components/dashboard/Navbar";
 import AddProjectModal from "@/components/manager/AddProjectModal";
 import { Search, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 
-// Images for projects card
 const PROJECT_IMAGES = [
   "/image1.png", "/image2.png", "/image3.png",
   "/image4.png", "/image5.png", "/image6.png",
@@ -33,11 +32,11 @@ export default function ManagerDashboard() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6; 
+  // --- UPDATED: itemsPerPage is now state ---
+  const [itemsPerPage, setItemsPerPage] = useState(6); 
 
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : "";
 
-  // 1. Fetch User Role for logic (Manager vs Developer)
   useEffect(() => {
     if (!token) {
       router.replace("/login");
@@ -58,7 +57,6 @@ export default function ManagerDashboard() {
     fetchRole();
   }, [token, router]);
 
-  // 2. Fetch Projects based on Role
   async function fetchProjects() {
     if (!token || !role) return;
     try {
@@ -90,7 +88,6 @@ export default function ManagerDashboard() {
     if (role && token) fetchProjects();
   }, [role, token]);
 
-  // Search and Pagination Logic
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery]);
@@ -109,11 +106,9 @@ export default function ManagerDashboard() {
 
   return (
     <div className="min-h-screen bg-white text-[#475569]">
-      {/* SHARED NAVBAR COMPONENT */}
       <Navbar />
 
       <main className={`${containerClass} py-8`}>
-        {/* Header Section */}
         <div className="flex justify-between items-center mb-5">
           <div className="border-l-[3px] border-[#22C55E] pl-3">
             <h1 className="text-base font-bold text-[#1E293B]">Visnext Software Solutions</h1>
@@ -127,13 +122,13 @@ export default function ManagerDashboard() {
                 placeholder="Search projects..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-[200px] bg-[#F8FAFC] border border-gray-100 rounded-lg py-1.5 pl-8 pr-3 text-[12px] outline-none focus:ring-1 focus:ring-blue-400"
+                className="w-[200px] bg-[#F8FAFC] border border-gray-100 rounded-lg py-1.5 pl-8 pr-3 text-[12px] outline-none"
               />
             </div>
             {role === "manager" && (
               <button 
                 onClick={() => setIsProjectModalOpen(true)} 
-                className="bg-[#3B82F6] text-white px-3 py-1.5 rounded-lg flex items-center gap-1 text-[12px] font-semibold hover:bg-blue-600 transition"
+                className="bg-[#3B82F6] text-white px-3 py-1.5 rounded-lg flex items-center gap-1 text-[12px] font-semibold"
               >
                 <Plus size={14} /> Add Project
               </button>
@@ -143,7 +138,6 @@ export default function ManagerDashboard() {
 
         <hr className="opacity-5 mb-6" />
 
-        {/* Projects Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 min-h-[400px]">
           {currentProjects.length ? (
             currentProjects.map((p) => (
@@ -167,7 +161,6 @@ export default function ManagerDashboard() {
           )}
         </div>
 
-        {/* Pagination Section */}
         {filteredProjects.length > 0 && (
           <div className="mt-10 flex justify-between items-center border-t border-gray-50 pt-6">
             <p className="text-[11px] text-[#94A3B8] font-medium">
@@ -177,8 +170,18 @@ export default function ManagerDashboard() {
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <span className="text-[11px] text-[#94A3B8] font-medium">Display</span>
-                <select className="bg-white border border-gray-200 rounded-md px-1 py-0.5 text-[11px] outline-none">
-                  <option>{itemsPerPage}</option>
+                {/* --- UPDATED: Dynamic Dropdown 1 to 6 --- */}
+                <select 
+                  value={itemsPerPage}
+                  onChange={(e) => {
+                    setItemsPerPage(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className="bg-white border border-gray-200 rounded-md px-1 py-0.5 text-[11px] outline-none cursor-pointer"
+                >
+                  {[1, 2, 3, 4, 5, 6].map(num => (
+                    <option key={num} value={num}>{num}</option>
+                  ))}
                 </select>
               </div>
 
@@ -218,7 +221,6 @@ export default function ManagerDashboard() {
         )}
       </main>
 
-      {/* Modals */}
       {isProjectModalOpen && role === "manager" && (
         <AddProjectModal
           setIsProjectModalOpen={setIsProjectModalOpen}

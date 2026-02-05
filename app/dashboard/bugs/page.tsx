@@ -45,6 +45,8 @@ function BugDashboardContent() {
 
   const [token, setToken] = useState<string | null>(null);
   const [role, setRole] = useState<string | null>(null);
+  
+  // --- UPDATED: Rows per page state ---
   const [rowsPerPage, setRowsPerPage] = useState(6);
   const containerClass = "max-w-[1000px] mx-auto px-6";
 
@@ -77,16 +79,15 @@ function BugDashboardContent() {
       if (!res.ok) { setBugs([]); setLoading(false); return; }
       const data = await res.json();
       
-      // --- FIXED MAPPING LOGIC ---
       setBugs(data.map((b: any) => ({
           id: b.id,
           title: b.title,
           status: b.status || "new",
-          type: b.type || "bug", // Added to ensure badges work
+          type: b.type || "bug", 
           assignees: b.assignments?.map((a: any) => ({ name: a.user?.name || "Unknown" })) || [],
           deadline: b.deadline,
           description: b.description,
-          screenshot_url: b.screenshot_url, // FIXED: Now passing the HF URL to state
+          screenshot_url: b.screenshot_url,
         })));
     } catch (err) { setError(true); } finally { setLoading(false); }
   };
@@ -208,9 +209,18 @@ function BugDashboardContent() {
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
                     <span className="text-[11px] text-[#94A3B8] font-medium">Display</span>
-                    <select value={rowsPerPage} onChange={(e) => { setRowsPerPage(Number(e.target.value)); setCurrentPage(1); }} className="bg-white border border-gray-200 rounded-md px-1 py-0.5 text-[11px]">
-                      <option value={6}>6</option>
-                      <option value={12}>12</option>
+                    {/* --- UPDATED: Dynamic Dropdown 1 to 6 --- */}
+                    <select 
+                      value={rowsPerPage} 
+                      onChange={(e) => { 
+                        setRowsPerPage(Number(e.target.value)); 
+                        setCurrentPage(1); 
+                      }} 
+                      className="bg-white border border-gray-200 rounded-md px-1 py-0.5 text-[11px] outline-none cursor-pointer"
+                    >
+                      {[1, 2, 3, 4, 5, 6].map(num => (
+                        <option key={num} value={num}>{num}</option>
+                      ))}
                     </select>
                   </div>
                   <div className="flex items-center gap-1">
